@@ -4,7 +4,7 @@ import json
 import numpy as np
 
 # 모델 로드 
-from model.predict import load_model, predict_from_keypoints
+from ai_model.predict import load_model, predict_from_keypoints
 
 app = FastAPI()
 
