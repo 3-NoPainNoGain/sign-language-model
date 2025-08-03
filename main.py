@@ -50,7 +50,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Mediapipe 처리
                 image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 results = holistic.process(image_rgb)
-                keypoints = extract_keypoints(results)  # shape = (258,)
+                keypoints = extract_keypoints(results)
+                print("🧩 keypoints shape:", keypoints.shape)
 
                 sequence.append(keypoints)
                 sequence = sequence[-30:]
@@ -61,14 +62,14 @@ async def websocket_endpoint(websocket: WebSocket):
 
                     recent_predictions.append(prediction)
                     recent_predictions = recent_predictions[-MAX_QUEUE:]
+
+                    # 동일 예측이 일정 횟수 이상일 때만 출력 
                     most_common = max(set(recent_predictions), key=recent_predictions.count)
 
-                    if recent_predictions.count(most_common) >= THRESHOLD_COUNT and most_common != last_prediction:
-                        await websocket.send_text(json.dumps({"result": most_common}))
-                        last_prediction = most_common
-
+                    if recent_predictions.count(most_common) >= THRESHOLD_COUNT:
+                        await websocket.send_text(json.dumps({
+                            "result": most_common,
+                            "coordinates": keypoints.tolist()
+                        }))
         except WebSocketDisconnect:
             print("🔌 WebSocket 연결 종료")
-        except Exception as e:
-            print("예측 중 오류:", e)
-            await websocket.send_text(json.dumps({"error": "예측 실패"}))
