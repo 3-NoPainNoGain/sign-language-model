@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import json
 import numpy as np
 import mediapipe as mp
+import cv2
 
 # 모델 로드 
 from ai_model.predict import load_model, predict_from_keypoints
