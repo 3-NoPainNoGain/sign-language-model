@@ -6,16 +6,19 @@ from .model import SignLanguageBiLSTM
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, "models", "model_bilstm_val_100_20250728.pth")
-CLASSES_PATH = os.path.join(BASE_DIR, "models", "classes.npy")
+CLASSES_PATH = os.path.join(BASE_DIR, "datasets", "classes.npy")
 
+# 클래스 로딩
 classes = np.load(CLASSES_PATH, allow_pickle=True)
 
+# 모델 로드 함수 
 def load_model():
     model = SignLanguageBiLSTM(num_classes=len(classes)).to(device)
     model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
     model.eval()
     return model, classes
 
+# 예측 함수 
 def predict_from_keypoints(keypoints_30x258, model, classes):
     if isinstance(keypoints_30x258, list):
         keypoints_30x258 = np.array(keypoints_30x258)
