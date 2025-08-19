@@ -28,6 +28,10 @@ mp_holistic = mp.solutions.holistic
 def read_root():
     return {"message": "Hello FastAPI"}
 
+@app.get("/health")
+def health():
+    return {"status" : "ok"}
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
