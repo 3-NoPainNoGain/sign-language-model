@@ -12,6 +12,10 @@ from ai_model.preprocessing import decode_base64_image, extract_keypoints
 
 app = FastAPI()
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 # ====== 파라미터 ======
 WIN            = 6     # 최근 예측 창 크기
 MAJ            = 4     # 다수결 임계
@@ -135,14 +139,20 @@ async def ws(websocket: WebSocket):
     await websocket.accept()
     print("WebSocket 연결됨")
 
-    sequence = []
+    # 시퀀스와 예측 창
+    sequence = []  # 원본 유지
     recent_preds = deque(maxlen=WIN)  # 예측 창
     word_buffer: List[str] = []       # 확정 단어만 저장 (정규화된 str)
 
+    # 시간/상태
     last_confirm_time = 0.0
     last_sentence_time = 0.0
     last_sentence_text = ""
     boot_time = time.time()
+
+    # ====== 추가: 동일 에러 중복 로그 억제 상태 ======
+    # 동일한 오류 메시지가 반복 발생해도 콘솔에는 최초 1회만 출력한다.
+    last_error_msg = None
 
     with mp_holistic.Holistic(min_detection_confidence=0.5,
                                min_tracking_confidence=0.5) as holistic:
@@ -163,7 +173,7 @@ async def ws(websocket: WebSocket):
 
                     if len(sequence) == 30:
                         raw = predict_from_keypoints(np.array(sequence), model, classes)
-                        pred = to_text(raw)          # ★ NFC 정규화
+                        pred = to_text(raw)          # NFC 정규화
                         resp["live"] = pred
 
                         now = time.time()
@@ -223,7 +233,12 @@ async def ws(websocket: WebSocket):
                     await websocket.send_text(json.dumps(resp))
 
                 except Exception as e:
-                    print("loop error:", e)
+                    # ====== 변경: 동일 에러 메시지 중복 출력 억제 ======
+                    msg = str(e)
+                    if msg != last_error_msg:
+                        print("loop error:", msg)
+                        last_error_msg = msg
+                    # 동일 에러가 반복되는 동안은 콘솔을 더럽히지 않고 다음 루프로 진행
                     continue
 
         except WebSocketDisconnect:

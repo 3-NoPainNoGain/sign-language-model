@@ -1,9 +1,8 @@
 fastapi==0.115.12
-uvicorn==0.34.2
+uvicorn[standard]==0.34.2
 numpy==1.26.4
 websockets==15.0.1
 pydantic==2.11.4
 mediapipe==0.10.21
-opencv-python==4.11.0.86
-torchvision
-torch
+opencv-python-headless==4.11.0.86
+#torch, torchvision은 도커 기준 설치 이슈를 줄이기 위해 Dockerfile에서 따로 설치 (CPU 전용 휠 레지스트리 사용)
