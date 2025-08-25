@@ -3,9 +3,11 @@ name: FastAPI CI/CD
 on:
   push:
     branches: ["develop"]
-    paths:
-      - "FastAPI/**"                        # ← 폴더명 정확히 일치
-      - ".github/workflows/fastapi-deploy.yml"
+    # 루트에 Dockerfile이라면 paths 필터는 굳이 안 씀(오탐 방지).
+    # 필요하면 특정 경로만으로 좁히세요.
+    # paths:
+    #   - ".github/workflows/fastapi-deploy.yml"
+    #   - "**/*"
   workflow_dispatch:
 
 env:
@@ -14,14 +16,13 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: FastAPI          # ← 폴더명 정확히 일치
     steps:
       - uses: actions/checkout@v4
 
       - name: Show workspace tree (debug)
-        run: ls -la && echo "----" && ls -la ..
+        run: |
+          echo "WORKSPACE = ${{ github.workspace }}"
+          ls -la
 
       - uses: docker/login-action@v3
         with:
@@ -34,7 +35,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: ./FastAPI                # ← 폴더명 정확히 일치
+          context: .              # 레포 루트가 빌드 컨텍스트
           push: true
           tags: |
             docker.io/${{ env.IMAGE_NAME }}:latest
