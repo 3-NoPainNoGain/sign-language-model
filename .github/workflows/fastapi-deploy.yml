@@ -4,7 +4,7 @@ on:
   push:
     branches: ["develop"]
     paths:
-      - "FASTAPI/**"                        # ← 대문자 폴더명으로 교체
+      - "FastAPI/**"                        # ← 폴더명 정확히 일치
       - ".github/workflows/fastapi-deploy.yml"
   workflow_dispatch:
 
@@ -16,12 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: FASTAPI          # ← 대문자 폴더명으로 교체
+        working-directory: FastAPI          # ← 폴더명 정확히 일치
     steps:
       - uses: actions/checkout@v4
 
-      # 구조 확인(디버그용, 원하는 경우 남겨도 됨)
-      - name: Show workspace tree
+      - name: Show workspace tree (debug)
         run: ls -la && echo "----" && ls -la ..
 
       - uses: docker/login-action@v3
@@ -35,7 +34,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: ./FASTAPI                # ← 대문자 폴더명으로 교체
+          context: ./FastAPI                # ← 폴더명 정확히 일치
           push: true
           tags: |
             docker.io/${{ env.IMAGE_NAME }}:latest
